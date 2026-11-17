@@ -1,38 +1,122 @@
 const container = document.getElementById('container');
-const resizeBtn = document.getElementById('resizeBtn');
 
-function createGrid(size) {
-  container.innerHTML = '';
-  
-  const squareSize = 480 / size;
-  
-  const totalSquares = size * size;
-  for (let i = 0; i < totalSquares; i++) {
-    const square = document.createElement('div');
-    square.classList.add('grid-square');
-    square.style.width = `${squareSize}px`;
-    square.style.height = `${squareSize}px`;
-    
-    // Add hover effect
-    square.addEventListener('mouseover', () => {
-      square.style.backgroundColor = rgb(r, g, b);
-    });
-    
-    container.appendChild(square);
-  }
-}
+const gridSlider = document.getElementById('gridSize');
+const gridValue = document.getElementById('gridValue');
 
-resizeBtn.addEventListener('click', () => {
-  let userInput = prompt('Enter number of squares per side (max 100):');
-  let size = parseInt(userInput);
-  
-  if (isNaN(size) || size <= 0 || size > 100) {
-    alert('Please enter a valid number between 1 and 100.');
-    return;
-  }
-  
-  createGrid(size);
+const colorPicker = document.getElementById('colorPicker');
+
+const blackBtn = document.getElementById('blackBtn');
+const rainbowBtn = document.getElementById('rainbowBtn');
+const eraserBtn = document.getElementById('eraserBtn');
+const clearBtn = document.getElementById('clearBtn');
+
+let currentColor = '#000000';
+let currentMode = 'color';
+let mouseDown = false;
+
+document.body.addEventListener('mousedown', () => {
+    mouseDown = true;
 });
 
-// Initial load
+document.body.addEventListener('mouseup', () => {
+    mouseDown = false;
+});
+
+function randomColor() {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+function paint(square) {
+
+    if (currentMode === 'rainbow') {
+        square.style.backgroundColor = randomColor();
+    }
+    else if (currentMode === 'eraser') {
+        square.style.backgroundColor = 'white';
+    }
+    else {
+        square.style.backgroundColor = currentColor;
+    }
+}
+
+function createGrid(size) {
+
+    container.innerHTML = '';
+
+    container.style.gridTemplateColumns =
+        `repeat(${size}, 1fr)`;
+
+    container.style.gridTemplateRows =
+        `repeat(${size}, 1fr)`;
+
+    const totalSquares = size * size;
+
+    const fragment = document.createDocumentFragment();
+
+    for (let i = 0; i < totalSquares; i++) {
+
+        const square = document.createElement('div');
+
+        square.classList.add('grid-square');
+
+        square.addEventListener('mousedown', () => {
+            paint(square);
+        });
+
+        square.addEventListener('mouseover', () => {
+            if (!mouseDown) return;
+            paint(square);
+        });
+
+        fragment.appendChild(square);
+    }
+
+    container.appendChild(fragment);
+}
+
+function clearGrid() {
+
+    document
+        .querySelectorAll('.grid-square')
+        .forEach(square => {
+            square.style.backgroundColor = 'white';
+        });
+
+}
+
+gridSlider.addEventListener('input', (e) => {
+
+    const size = e.target.value;
+
+    gridValue.textContent =
+        `${size} x ${size}`;
+
+    createGrid(size);
+
+});
+
+colorPicker.addEventListener('input', (e) => {
+    currentColor = e.target.value;
+    currentMode = 'color';
+});
+
+blackBtn.addEventListener('click', () => {
+    currentColor = '#000000';
+    currentMode = 'color';
+});
+
+rainbowBtn.addEventListener('click', () => {
+    currentMode = 'rainbow';
+});
+
+eraserBtn.addEventListener('click', () => {
+    currentMode = 'eraser';
+});
+
+clearBtn.addEventListener('click', clearGrid);
+
 createGrid(16);
